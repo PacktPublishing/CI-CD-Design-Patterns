@@ -1,0 +1,31 @@
+lambdaBuild:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: lambdaPipeline_Build
+      Description: Build the artifact
+      ServiceRole: !GetAtt lambdaBuildRole.Arn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:3.0
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: !Sub |
+          version: 0.2
+          env:
+            shell: bash
+          phases:
+            install:
+              runtime-versions:
+                python: 3.8
+            build:
+              commands:
+                - !Sub aws cloudformation package --template-file template.yml --s3-bucket ${artifactsBucket} --output-template-file outputTemplate.yml
+          artifacts:
+            type: zip
+            files:
+              - template.yml
+              - outputTemplate.yml
+      TimeoutInMinutes: 5

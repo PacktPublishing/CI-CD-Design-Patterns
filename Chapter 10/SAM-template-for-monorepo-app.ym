@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: '2010-09-09' 
+Transform: 'AWS::Serverless-2016-10-31' 
+Description: Simple example of SAM template 
+Globals: 
+  Function: 
+    Timeout: 30 
+
+Resources: 
+  AwsLambdaPowertoolsPythonLayer: 
+    Type: AWS::Serverless::Application 
+    Properties: 
+      Location: 
+        ApplicationId: arn:aws:serverlessrepo:eu-west-1:057560766410:applications/aws-lambda-powertools-python-layer 
+        SemanticVersion: 2.28.1 
+
+  MyBucket: 
+    Type: AWS::S3::Bucket 
+    Properties: 
+      BucketName: mybucketname 
+
+  MyTable: 
+    Type: AWS::DynamoDB::Table 
+    Properties:
+      TableName: my-table 
+      AttributeDefinitions: 
+        - AttributeName: ID 
+          AttributeType: S 
+      KeySchema: 
+        - AttributeName: ID 
+          KeyType: HASH 
+      ProvisionedThroughput: 
+        ReadCapacityUnits: 5 
+        WriteCapacityUnits: 5 
+      StreamSpecification: 
+        StreamViewType: NEW_AND_OLD_IMAGES 
+
+  MyApi: 
+    Type: AWS::Serverless::Api 
+    Properties: 
+      StageName: Prod 
+      Cors: 
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'" 
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'" 
+        AllowOrigin: "'*'" 
+      TracingEnabled: true 
+      MethodSettings: 
+      - HttpMethod: '*' 
+        ResourcePath: '/*' 
+
+  MyFunction1: 
+    Type: AWS::Serverless::Function 
+    Properties: 
+      Handler: function1.lambda_handler 
+      CodeUri: lambdafunctions/function1/ 
+      Runtime: python3.8 
+      Policies: 
+        - DynamoDBCrudPolicy: 
+            TableName: !Ref MyTable 
+        - CloudWatchLambdaInsightsExecutionRolePolicy 
+      Layers: 
+        - !GetAtt AwsLambdaPowertoolsPythonLayer.Outputs.LayerVersionArn 
+      Events: 
+        simpleapi: 
+          Type: Api 
+          Properties: 
+            RestApiId: 
+              !Ref MyApi 
+            Path: /submit 
+            Method: post 
+
+  MyFunction2: 
+    Type: AWS::Serverless::Function 
+    Properties: 
+      Handler: function2.lambda_handler 
+      CodeUri: lambdafunctions/function2/ 
+      Runtime: python3.8 
+      Policies: 
+        - S3WritePolicy: 
+            BucketName: !Ref MyBucket 
+        - AWSLambdaDynamoDBExecutionRole 
+        - DynamoDBStreamReadPolicy: 
+            StreamName: !GetAtt MyTable.StreamArn 
+            TableName: !Ref MyTable 
+        - CloudWatchLambdaInsightsExecutionRolePolicy 
+      Layers: 
+        - !GetAtt AwsLambdaPowertoolsPythonLayer.Outputs.LayerVersionArn 
+      Events: 
+        MyDynamoDBEvent: 
+          Type: DynamoDB 
+          Properties: 
+            Stream: !GetAtt MyTable.StreamArn 
+            StartingPosition: LATEST 
