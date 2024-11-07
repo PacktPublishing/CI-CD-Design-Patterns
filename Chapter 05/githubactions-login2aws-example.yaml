@@ -1,0 +1,13 @@
+- name: Install AWS CLI
+  run: |
+  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
+  unzip -q /tmp/awscliv2.zip -d /tmp
+  sudo /tmp/aws/install --update
+  rm -rf /tmp/aws/ /tmp/awscliv2.zip
+- name: Store artifact
+  run: |
+    aws s3 sync ./artifacts s3://artifactsbucket
+  env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: 'eu-west-1'

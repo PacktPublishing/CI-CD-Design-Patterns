@@ -1,0 +1,3 @@
+call-workflow-passing-data:
+  uses: 
+    organization/repo/.github/workflows/reusable_workflow.yml@main
