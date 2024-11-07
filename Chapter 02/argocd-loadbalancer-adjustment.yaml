@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+ name: load-balancer-adjustment
+spec:
+ project: default
+ source:
+ repoURL: 'https://github.com/your-org/your-repo'
+ targetRevision: HEAD
+ path: infrastructure/load-balancer
+ destination:
+ server: 'https://kubernetes.default.svc'
+ namespace: loadbalancer
+ syncPolicy:
+ automated:
+ prune: true
+ selfHeal: true
