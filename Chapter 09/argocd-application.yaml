@@ -1,0 +1,13 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+ name: my-app-dev
+spec:
+ project: default
+ source:
+ repoURL: https://github.com/my-org/my-repo.git
+ targetRevision: HEAD
+ path: overlays/dev
+ destination:
+ server: https://kubernetes.default.svc
+ namespace: dev
