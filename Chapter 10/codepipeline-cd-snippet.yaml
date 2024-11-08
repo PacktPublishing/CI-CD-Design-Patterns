@@ -1,0 +1,47 @@
+        - Name: DeployLambda
+          Actions:
+          - Name: CreateChangeSet
+            ActionTypeId:
+              Category: Deploy
+              Owner: AWS
+              Version: 1
+              Provider: CloudFormation
+            InputArtifacts:
+            - Name: lambdaBuildOutput
+            OutputArtifacts: []
+            RunOrder: 1
+            Configuration:
+              ActionMode: CHANGE_SET_REPLACE
+              StackName: lambdaDemo
+              ChangeSetName: simpleLambdaChangeSet
+              TemplatePath: lambdaBuildOutput::outputTemplate.yml
+              Capabilities: CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND
+              RoleArn: !GetAtt lambdaDeployRole.Arn
+          - Name: ManualApproval
+            ActionTypeId:
+              Category: Approval
+              Owner: AWS
+              Version: 1
+              Provider: Manual
+            RunOrder: 2
+            Configuration:
+              NotificationArn: !Ref notificationTopic
+              CustomData: 'Approve or reject the pipeline.'
+          - Name: ExecuteChangeSet
+            ActionTypeId:
+              Category: Deploy
+              Owner: AWS
+              Version: 1
+              Provider: CloudFormation
+            InputArtifacts:
+            - Name: lambdaBuildOutput
+            OutputArtifacts: []
+            RunOrder: 3
+            Configuration:
+              ActionMode: CHANGE_SET_EXECUTE
+              StackName: lambdaDemo
+              ChangeSetName: simpleLambdaChangeSet
+              RoleArn: !GetAtt lambdaDeployRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref artifactsBucket
