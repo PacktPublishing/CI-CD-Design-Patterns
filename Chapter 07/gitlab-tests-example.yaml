@@ -1,0 +1,21 @@
+stages:
+ - test
+variables:
+ UNIT_TEST_PROJECT: my_project_unit_tests
+ INTEGRATION_TEST_PROJECT: my_project_integration_tests
+ PERFORMANCE_TEST_PROJECT: my_project_performance_tests
+unit_tests:
+ stage: test
+ script: 
+ - echo "Running unit tests..."
+ - gitlab-runner exec docker test --env CI_PROJECT_DIR=$UNIT_TEST_PROJECT
+integration_tests:
+ stage: test
+ script: 
+ - echo "Running integration tests..."
+ - gitlab-runner exec docker test --env CI_PROJECT_DIR=$INTEGRATION_TEST_PROJECT
+performance_tests:
+ stage: test
+ script: 
+ - echo "Running performance tests..."
+ - gitlab-runner exec docker test --env CI_PROJECT_DIR=$PERFORMANCE_TEST_PROJECT
