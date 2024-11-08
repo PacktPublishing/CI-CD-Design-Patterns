@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+ name: terraform-plan
+spec:
+ project: default
+ source:
+ repoURL: 'https://github.com/your-org/your-repo'
+ targetRevision: HEAD
+ path: terraform/plan
+ destination:
+ server: 'https://kubernetes.default.svc'
+ namespace: terraform
+ syncPolicy:
+ automated:
+ prune: true
+ selfHeal: true
